@@ -15,8 +15,13 @@ import { ChecklistItemListComponent } from "./ui/checklist-item-list.component";
   imports: [ChecklistHeaderComponent, ModalComponent, FormModalComponent, ChecklistItemListComponent],
   template: `
     @if (checklist(); as checklist) {
-        <app-checklist-header [checklist]="checklist" (addItem)="checklistItemBeingEdited.set({})"></app-checklist-header>
-        <app-checklist-item-list [checklistItems]="items()"></app-checklist-item-list>
+        <app-checklist-header 
+          [checklist]="checklist" 
+          (addItem)="checklistItemBeingEdited.set({})"
+          (resetChecklist)="checklistItemService.reset$.next($event)"
+        >
+        </app-checklist-header>
+        <app-checklist-item-list [checklistItems]="items()" (toggle)="checklistItemService.toggle$.next($event)"></app-checklist-item-list>
         <app-modal [isOpen]="!!checklistItemBeingEdited()">
           <ng-template>
             <app-form-modal
