@@ -39,7 +39,27 @@ import { ChecklistList } from "./ui/checklist-list.component";
     </section>
     
   `,
-  styles: ``
+  styles: [
+    `
+      ul {
+        padding: 0;
+        margin: 0;
+      }
+      li {
+        font-size: 1.5em;
+        display: flex;
+        justify-content: space-between;
+        background: var(--color-light);
+        list-style-type: none;
+        margin-bottom: 1rem;
+        padding: 1rem;
+
+        button {
+          margin-left: 1rem;
+        }
+      }
+    `,
+  ],
 })
 export default class HomeComponent {
   formBuilder = inject(FormBuilder);
