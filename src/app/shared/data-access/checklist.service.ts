@@ -1,8 +1,9 @@
 import { Injectable, computed, effect, inject, signal } from "@angular/core";
-import { AddChecklist, Checklist } from "../interfaces/checklist";
+import { AddChecklist, Checklist, EditChecklist } from "../interfaces/checklist";
 import { Subject } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { StorageService } from "./storage.service";
+import { ChecklistItemService } from "../../checklist/data-access/checklist-item.service";
 
 export interface ChecklistsState {
     checklists: Checklist[];
@@ -15,6 +16,7 @@ export interface ChecklistsState {
 })
 export class ChecklistService {
     storageService = inject(StorageService);
+    checklistItemService = inject(ChecklistItemService);
 
     private state = signal<ChecklistsState>({
         checklists: [],
@@ -26,6 +28,8 @@ export class ChecklistService {
     loaded = computed(() => this.state().loaded);
 
     add$ = new Subject<AddChecklist>();
+    remove$ = this.checklistItemService.checklistRemoved$;
+    edit$ = new Subject<EditChecklist>();
     private checklistsLoaded$ = this.storageService.loadChecklists();
 
     constructor() {
@@ -34,7 +38,7 @@ export class ChecklistService {
                 this.storageService.saveChecklists(this.checklists());
             }
         });
-        
+
         this.add$.pipe(takeUntilDestroyed()).subscribe((checklist) =>
             this.state.update((state) => ({
                 ...state,
@@ -51,6 +55,21 @@ export class ChecklistService {
                 })),
             error: (err) => this.state.update((state) => ({ ...state, error: err })),
         });
+
+        this.remove$.pipe(takeUntilDestroyed()).subscribe((checklistId) =>
+            this.state.update((state) => ({
+                ...state,
+                checklists: this.state().checklists.filter((checklist) => checklist.id !== checklistId)
+            }))
+        );
+
+        this.edit$.pipe(takeUntilDestroyed()).subscribe((update) =>
+            this.state.update((state) => ({
+                ...state,
+                checklist: this.state().checklists.map((checklist) =>
+                    checklist.id === update.id ? { ...checklist, title: update.data.title } : checklist)
+            }))
+        );
     }
 
     private addIdToChecklist(checklist: AddChecklist): Checklist {

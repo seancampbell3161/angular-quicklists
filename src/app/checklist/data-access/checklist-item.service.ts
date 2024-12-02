@@ -29,6 +29,9 @@ export interface ChecklistItemsState {
     toggle$ = new Subject<RemoveChecklistItem>();
     reset$ = new Subject<RemoveChecklist>();
     checklistItemsLoaded$ = this.storageService.loadChecklistItems();
+    edit$ = new Subject<EditChecklistItem>();
+    remove$ = new Subject<RemoveChecklistItem>();
+    checklistRemoved$ = new Subject<RemoveChecklist>();
 
     constructor() {
         effect(() => {
@@ -70,14 +73,37 @@ export interface ChecklistItemsState {
 
         this.checklistItemsLoaded$.pipe(takeUntilDestroyed()).subscribe({
             next: (checklistItems) => {
-                this.state.update((state) => ({
+                this.state.update((state): ChecklistItemsState => ({
                     ...state,
                     checklistItems,
                     loaded: true,
                 }));
                 console.log(this.state());
-            }
-            
+            }           
         });
+
+        this.edit$.pipe(takeUntilDestroyed()).subscribe({
+            next: (update) => 
+                this.state.update((state) => ({
+                    ...state,
+                    checklistItems: state.checklistItems.map(item => 
+                        item.id === update.id ? { ...item, title: update.data.title } : item)
+                }))
+        });
+
+        this.remove$.pipe(takeUntilDestroyed()).subscribe({
+            next: (idToRemove) =>
+                this.state.update((state) => ({
+                    ...state,
+                    checklistItems: state.checklistItems.filter(item => item.id !== idToRemove)
+                }))
+        });
+
+        this.checklistRemoved$.pipe(takeUntilDestroyed()).subscribe((checklistId) =>
+            this.state.update((state) => ({
+                ...state,
+                checklistItems: this.state().checklistItems.filter((item) => item.checklistId !== checklistId),
+            }))
+        );
     }
   }

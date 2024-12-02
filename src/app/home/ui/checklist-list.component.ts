@@ -1,5 +1,5 @@
-import { Component, input } from "@angular/core";
-import { Checklist } from "../../shared/interfaces/checklist";
+import { Component, input, output } from "@angular/core";
+import { Checklist, EditChecklist, RemoveChecklist } from "../../shared/interfaces/checklist";
 import { RouterLink } from "@angular/router";
 
 @Component({
@@ -12,7 +12,9 @@ import { RouterLink } from "@angular/router";
                     <li>
                         <a routerLink="/checklist/{{ list.id }}">
                             {{ list.title }}
-                        </a>xw
+                        </a>
+                        <button (click)="edit.emit(list)">Edit</button>
+                        <button (click)="delete.emit(list.id)">Delete</button>
                     </li>
                 } @empty {
                     <p>Click the add button to create your first checklist!</p>
@@ -23,4 +25,6 @@ import { RouterLink } from "@angular/router";
 })
 export class ChecklistList {
     checklists = input.required<Checklist[]>();
+    delete = output<RemoveChecklist>();
+    edit = output<Checklist>();
 }
